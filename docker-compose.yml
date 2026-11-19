@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: budget
+      MARIADB_USER: budget
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: mysql://budget:${DB_PASSWORD}@db:3306/budget
+      PORT: 8080
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      TZ: Europe/Zurich
+    volumes:
+      - uploaddata:/app/data
+
+volumes:
+  dbdata:
+  uploaddata:

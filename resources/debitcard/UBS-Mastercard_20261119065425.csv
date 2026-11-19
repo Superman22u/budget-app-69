@@ -1,0 +1,14 @@
+﻿Kontonummer:;0235 00733925.40;
+IBAN:;CH86 0023 5235 7339 2540 T;
+Von:;2025-10-29;
+Bis:;2026-11-04;
+Anfangssaldo:;;
+Schlusssaldo:;;
+Bewertet in:;CHF;
+Anzahl Transaktionen in diesem Zeitraum:;4;
+
+Abschlussdatum;Abschlusszeit;Buchungsdatum;Valutadatum;Währung;Belastung;Gutschrift;Einzelbetrag;Saldo;Transaktions-Nr.;Beschreibung1;Beschreibung2;Beschreibung3;Fussnoten;
+2026-11-02;17:28:43;2026-11-04;2026-11-02;CHF;-200.00;;;;9930808BN6015346;UBS Zuerich Europaalle;"21031281-0 11/28; Bezug UBS Bancomat";Transaktions-Nr. 9930808BN6015346;;
+2026-09-10;08:23:58;2026-09-14;2026-09-10;CHF;-192.71;;;;9930755BN7134974;UBS Zuerich Flughafen;"21031281-0 11/28; Bezug UBS Bancomat";"Kartentransaktionsbetrag: -200.00 EUR; Devisenkurs: 0.963548; Transaktions-Nr. 9930755BN7134974";;
+2025-11-18;19:01:54;2025-11-19;2025-11-18;CHF;-500.00;;;;9930823BN9812096;UBS Zuerich Shopville;"21031281-0 11/28; Bezug UBS Bancomat";Transaktions-Nr. 9930823BN9812096;;
+2025-10-28;17:55:39;2025-10-29;2025-10-28;CHF;-500.00;;;;9930802BN1390926;UBS Zuerich Shopville;"21031281-0 11/28; Bezug UBS Bancomat";Transaktions-Nr. 9930802BN1390926;;
