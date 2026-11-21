@@ -12,6 +12,8 @@ import { seedAdmin } from './seed.ts'
 import { registerAuth } from './routes/auth.ts'
 import { registerBudget } from './routes/budget.ts'
 import { registerTransactions } from './routes/transactions.ts'
+import { backfillInventory } from './inventory.ts'
+import { registerInventory } from './routes/inventory.ts'
 import { registerHealthcare, registerReceipts } from './routes/records.ts'
 import { registerAdmin, registerAnalysis, registerSettings } from './routes/rest.ts'
 
@@ -38,6 +40,7 @@ registerBudget(app)
 registerTransactions(app)
 registerHealthcare(app)
 registerReceipts(app)
+registerInventory(app)
 registerAnalysis(app)
 registerSettings(app)
 registerAdmin(app)
@@ -54,6 +57,7 @@ app.setNotFoundHandler((request, reply) => {
 
 await waitForDatabase()
 await migrate()
+await backfillInventory()
 await seedAdmin()
 const port = Number(process.env.PORT || 3001)
 await app.listen({ port, host: '0.0.0.0' })

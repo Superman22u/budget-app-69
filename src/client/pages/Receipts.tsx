@@ -5,7 +5,7 @@ import { Banner, useBusy } from '../ui'
 import { TransactionPicker } from './Healthcare'
 
 type Receipt = { id: string; storeName: string | null; storeChain: string | null; purchasedAt: string | null; totalAmount: number | null; currency: string; paymentMethod: string | null; cardHint: string | null; transactionId: string | null; itemCount: number }
-type Item = { description: string; quantity: number | null; weight: number | null; unitPrice: number | null; lineTotal: number | null; expiryDate: string | null }
+type Item = { id?: string; description: string; quantity: number | null; weight: number | null; unitPrice: number | null; lineTotal: number | null; expiryDate: string | null }
 
 export function ReceiptsPage() {
   const navigate = useNavigate()
@@ -34,11 +34,11 @@ export function ReceiptsPage() {
         <h1>Receipts</h1>
         <div className="row">
           <button className="btn secondary" onClick={() => run(async () => { const created = await api<{ id: string }>('/api/receipts', { method: 'POST', body: '{}' }); navigate(`/receipts/${created.id}`) })}>Add manually</button>
-          <label className="btn">Import PDF<input type="file" accept=".pdf" onChange={onFile} /></label>
+          <label className="btn">Import PDF or photo<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={onFile} /></label>
         </div>
       </div>
       <Banner error={error} note={note} />
-      <p className="muted">Migros PDFs are split into separate receipts, with each item, the weight when it was sold by the kilo, the price, and the store. Open a receipt to add an expiry date or connect it to the card payment.</p>
+      <p className="muted">Migros PDFs are split into separate receipts. A JPG or PNG photo of a paper receipt is read the same way: store, date, total, and the lines. Check the lines after a photo, because a crease or a faint print can miss a price. Each item is also added to <Link to="/inventory">Inventory</Link>, where you can set the expiry, the price per kilo, and mark it used up.</p>
       <input placeholder="Search store or item" value={query} onChange={(event) => { setQuery(event.target.value); load(event.target.value) }} />
       <div className="card table-wrap">
         <table>
@@ -147,7 +147,7 @@ export function ReceiptDetailPage() {
         <TransactionPicker value={transactionId} onChange={setTransactionId} linked={linkedLabel} />
         <div className="row">
           <button className="btn" disabled={busy} type="submit">Save receipt</button>
-          {fileName && <a className="btn secondary" href={`/api/receipts/${id}/file`}>Open PDF</a>}
+          {fileName && <a className="btn secondary" href={`/api/receipts/${id}/file`}>{/\.pdf$/i.test(fileName) ? 'Open PDF' : 'Open photo'}</a>}
           <button className="btn danger" type="button" onClick={() => run(async () => { await api(`/api/receipts/${id}`, { method: 'DELETE' }); navigate('/receipts') })}>Delete</button>
         </div>
       </form>

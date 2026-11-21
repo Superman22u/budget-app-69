@@ -3,6 +3,6 @@
   "short_name": "Budget",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#efeae2",
-  "theme_color": "#0c6b58"
+  "background_color": "#b9dcff",
+  "theme_color": "#16325c"
 }

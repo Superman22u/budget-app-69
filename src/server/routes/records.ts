@@ -3,6 +3,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify'
 import { currentUser } from '../auth.ts'
 import { exec, many, one } from '../db.ts'
 import { readUpload } from '../files.ts'
+import { stockReceiptItem } from '../inventory.ts'
 import { HttpError, likeTerm } from '../http.ts'
 
 export function registerHealthcare(app: FastifyInstance): void {
@@ -137,13 +138,39 @@ export function registerReceipts(app: FastifyInstance): void {
       text(body.storeName, 200), text(body.storeChain, 80), purchasedAt, money(body.totalAmount), String(body.currency || 'CHF').slice(0, 3).toUpperCase(), text(body.paymentMethod, 80), text(body.cardHint, 40), transactionId, id,
     ])
     const items = Array.isArray(body.items) ? body.items as Record<string, unknown>[] : []
-    await exec('DELETE FROM receipt_items WHERE receipt_id = ?', [id])
+    const storeName = text(body.storeName, 200)
+    const storeChain = text(body.storeChain, 80)
+    const currency = String(body.currency || 'CHF').slice(0, 3).toUpperCase()
+    const kept: string[] = []
     for (const [index, item] of items.entries()) {
       const description = String(item.description || '').trim()
       if (!description) continue
-      await exec('INSERT INTO receipt_items (id, receipt_id, description, quantity, weight, unit_price, line_total, expiry_date, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
-        randomUUID(), id, description.slice(0, 300), money(item.quantity), money(item.weight), money(item.unitPrice), money(item.lineTotal), dateOrNull(item.expiryDate), index,
-      ])
+      const existingId = typeof item.id === 'string' ? item.id : ''
+      const owned = existingId ? await one('SELECT id FROM receipt_items WHERE id = ? AND receipt_id = ?', [existingId, id]) : null
+      const itemId = owned ? existingId : randomUUID()
+      const quantity = money(item.quantity)
+      const weight = money(item.weight)
+      const unitPrice = money(item.unitPrice)
+      const lineTotal = money(item.lineTotal)
+      const expiryDate = dateOrNull(item.expiryDate)
+      if (owned) {
+        await exec('UPDATE receipt_items SET description=?, quantity=?, weight=?, unit_price=?, line_total=?, expiry_date=?, sort_order=? WHERE id=?', [
+          description.slice(0, 300), quantity, weight, unitPrice, lineTotal, expiryDate, index, itemId,
+        ])
+      } else {
+        await exec('INSERT INTO receipt_items (id, receipt_id, description, quantity, weight, unit_price, line_total, expiry_date, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+          itemId, id, description.slice(0, 300), quantity, weight, unitPrice, lineTotal, expiryDate, index,
+        ])
+      }
+      await stockReceiptItem(user.id, {
+        id: itemId, description, quantity, weight, unitPrice, lineTotal, expiryDate, storeName, storeChain, purchasedAt, currency,
+      })
+      kept.push(itemId)
+    }
+    if (kept.length) {
+      await exec(`DELETE FROM receipt_items WHERE receipt_id = ? AND id NOT IN (${kept.map(() => '?').join(',')})`, [id, ...kept])
+    } else {
+      await exec('DELETE FROM receipt_items WHERE receipt_id = ?', [id])
     }
     return { ok: true }
   })
@@ -179,9 +206,18 @@ function money(value: unknown): number | null {
   return Number.isFinite(number) ? number : null
 }
 
+function mediaType(storedPath: string, fileName: string): string {
+  const extension = [fileName, storedPath].map((value) => value.toLowerCase().split('.').pop() || '').find((value) => ['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(value)) || ''
+  if (extension === 'jpg' || extension === 'jpeg') return 'image/jpeg'
+  if (extension === 'png') return 'image/png'
+  if (extension === 'webp') return 'image/webp'
+  if (extension === 'pdf') return 'application/pdf'
+  return 'application/octet-stream'
+}
+
 async function sendStored(reply: FastifyReply, storedPath: string, fileName: string) {
   const buffer = await readUpload(storedPath)
-  reply.header('Content-Type', 'application/pdf')
+  reply.header('Content-Type', mediaType(storedPath, fileName))
   reply.header('Content-Disposition', `inline; filename="${fileName.replace(/"/g, '')}"`)
   return reply.send(buffer)
 }

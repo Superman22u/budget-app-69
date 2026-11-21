@@ -13,7 +13,8 @@ Sign in with your email. The first start creates an administrator for `rene@rene
 - Import bank files (UBS CSV, Revolut CSV, Raiffeisen PDF) and card files (Viseca CSV, Swisscard CSV/Excel, Liberty Excel, UBS Visa CSV/PDF). Rows already stored are skipped, including when two downloads cover the same dates.
 - Categorise each booking. Similar descriptions can reuse a category. Analysis sums spending by category, month, and source.
 - Import a SWICA Leistungsabrechnung and line it up with the bank credit. Scans without text can be filled in by hand.
-- Import Migros receipt PDFs. Items keep description, quantity, weight, price, and an expiry date you can edit. A receipt can be linked to the card or bank payment.
+- Import Migros receipt PDFs, or a JPG or PNG photo of a paper receipt. Items keep description, quantity, weight, price, and an expiry date you can edit. A receipt can be linked to the card or bank payment. Photos are read automatically; check the lines afterwards.
+- Inventory, next to Healthcare, lists what is still in the house. Change the expiry, weight, price per kilo, store, and where it is kept, and mark an item used up when it is finished.
 
 Amounts in EUR or USD are shown next to the CHF amount and the rate. If the bank file contains the rate, that rate is kept. Otherwise set the rate under Settings and it fills transactions that do not have a CHF amount yet.
 
@@ -25,20 +26,20 @@ Install Docker, then from this folder:
 cp .env.example .env
 ```
 
-Edit `.env` before the first start. Set `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `JWT_SECRET`, and `ADMIN_INITIAL_PASSWORD`. Set `APP_URL` to the address you open in the browser, for example `http://192.168.1.20:8080`, so password links point at the Pi.
+Edit `.env` before the first start. Set `DATABASE_URL` to the MariaDB already running on the Pi, with its own database and user. Set `JWT_SECRET` and `ADMIN_INITIAL_PASSWORD`. Set `APP_URL` to the address you open in the browser, for example `http://192.168.1.20:82`, so password links point at the Pi. The site listens on port 82 so it can sit beside another app on ports 80 and 443.
 
 ```sh
 docker compose up -d --build
 ```
 
-Open port 8080. Later updates:
+Open port 82. Later updates:
 
 ```sh
 git pull
 docker compose up -d --build
 ```
 
-`scripts/update.sh` does those two steps. Database files and uploaded PDFs stay in Docker volumes.
+`scripts/update.sh` does those two steps. The database stays in the MariaDB already installed on the Pi. Uploaded files stay in a Docker volume.
 
 To send password-reset email, set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM`. Use `COOKIE_SECURE=1` only when the site is served over HTTPS.
 

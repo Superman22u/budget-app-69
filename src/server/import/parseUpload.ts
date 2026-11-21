@@ -2,6 +2,8 @@ import { createRequire } from 'node:module'
 import { HttpError } from '../http.ts'
 import { emptyHealthDocument, parseReceiptText, parseSwica } from './documents.ts'
 import { parseMoneySpreadsheet, parseMoneyText, parseRaiffeisen, parseUbsAccountPdf, parseUbsVisaPdf } from './money.ts'
+import { readReceiptPhoto } from './ocr.ts'
+import { parsePhotoReceipt } from './photoReceipt.ts'
 import { decodeText } from './text.ts'
 import type { ParsedFile } from './types.ts'
 
@@ -23,6 +25,14 @@ export async function parseUpload(filename: string, buffer: Buffer, expect?: str
       throw new HttpError(400, error instanceof Error ? error.message : 'Could not read the spreadsheet')
     }
   }
+  if (extension === 'jpg' || extension === 'jpeg' || extension === 'png' || extension === 'webp') {
+    if (expect !== 'receipt') throw new HttpError(400, 'Photos can be imported on the Receipts page.')
+    try {
+      return parsePhotoReceipt(await readReceiptPhoto(buffer))
+    } catch (error) {
+      throw new HttpError(400, error instanceof Error ? error.message : 'Could not read the photo')
+    }
+  }
   if (extension === 'csv' || extension === 'txt' || extension === '') {
     try {
       return parseMoneyText(decodeText(buffer))
@@ -30,7 +40,7 @@ export async function parseUpload(filename: string, buffer: Buffer, expect?: str
       throw new HttpError(400, error instanceof Error ? error.message : 'Could not read the file')
     }
   }
-  throw new HttpError(400, 'Use a CSV, Excel, or PDF file.')
+  throw new HttpError(400, 'Use a CSV, Excel, PDF, or a photo of a receipt.')
 }
 
 async function parsePdf(buffer: Buffer, expect?: string): Promise<ParsedFile> {

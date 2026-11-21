@@ -8,6 +8,7 @@ import { HttpError, likeTerm, round2 } from '../http.ts'
 import { parseUpload } from '../import/parseUpload.ts'
 import { saveTransactions } from '../import/saveMoney.ts'
 import { recalcLine } from '../match.ts'
+import { stockReceiptItem } from '../inventory.ts'
 import { suggestCategory } from '../seed.ts'
 
 const SORTS: Record<string, string> = {
@@ -276,9 +277,23 @@ async function saveReceipts(userId: string, fileName: string, buffer: Buffer, re
       id, userId, receipt.storeName, receipt.storeChain, receipt.purchasedAt, receipt.totalAmount, receipt.currency || 'CHF', receipt.paymentMethod, receipt.cardHint, fileName, storedPath, transactionId, receipt.notes ? `${receipt.notes}\n${receipt.rawText}` : receipt.rawText,
     ])
     for (const [index, item] of receipt.items.entries()) {
+      const itemId = randomUUID()
       await exec('INSERT INTO receipt_items (id, receipt_id, description, quantity, weight, unit_price, line_total, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
-        randomUUID(), id, item.description, item.quantity, item.weight, item.unitPrice, item.lineTotal, index,
+        itemId, id, item.description, item.quantity, item.weight, item.unitPrice, item.lineTotal, index,
       ])
+      await stockReceiptItem(userId, {
+        id: itemId,
+        description: item.description,
+        quantity: item.quantity,
+        weight: item.weight,
+        unitPrice: item.unitPrice,
+        lineTotal: item.lineTotal,
+        expiryDate: null,
+        storeName: receipt.storeName,
+        storeChain: receipt.storeChain,
+        purchasedAt: receipt.purchasedAt,
+        currency: receipt.currency || 'CHF',
+      })
       items += 1
     }
   }

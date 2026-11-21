@@ -1,10 +1,12 @@
 import type { FastifyRequest } from 'fastify'
 import { HttpError } from './http.ts'
 
+export const sessionCookie = 'budget_token'
+
 export type Authed = { id: string; role: 'admin' | 'user'; email: string }
 
 export async function currentUser(req: FastifyRequest): Promise<Authed> {
-  const token = req.cookies?.token
+  const token = req.cookies?.[sessionCookie]
   if (!token) throw new HttpError(401, 'Sign in required')
   try {
     const payload = req.server.jwt.verify<{ sub: string; role: 'admin' | 'user'; email: string }>(token)

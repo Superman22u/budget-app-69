@@ -6,6 +6,7 @@ import { AnalysisPage } from './pages/Analysis'
 import { ForgotPage, LoginPage, RegisterPage, ResetPage } from './pages/AuthPages'
 import { BudgetPage } from './pages/Budget'
 import { HealthcarePage } from './pages/Healthcare'
+import { InventoryPage } from './pages/Inventory'
 import { HomePage } from './pages/Home'
 import { PlanPage } from './pages/Plan'
 import { ReceiptDetailPage, ReceiptsPage } from './pages/Receipts'
@@ -26,6 +27,7 @@ export function App() {
         <Route path="/budget/plans/:id" element={<PlanPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/healthcare" element={<HealthcarePage />} />
+        <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/receipts" element={<ReceiptsPage />} />
         <Route path="/receipts/:id" element={<ReceiptDetailPage />} />
         <Route path="/analysis" element={<AnalysisPage />} />
@@ -57,6 +59,7 @@ function Layout({ user, onLogout }: { user: User; onLogout: () => void }) {
           <Item to="/budget">Budget</Item>
           <Item to="/transactions">Transactions</Item>
           <Item to="/healthcare">Healthcare</Item>
+          <Item to="/inventory">Inventory</Item>
           <Item to="/receipts">Receipts</Item>
           <Item to="/analysis">Analysis</Item>
           <Item to="/settings">Settings</Item>
@@ -96,6 +99,7 @@ function MorePage() {
       <h1>More</h1>
       <div className="card stack">
         <NavLink to="/healthcare">Healthcare</NavLink>
+        <NavLink to="/inventory">Inventory</NavLink>
         <NavLink to="/analysis">Analysis</NavLink>
         <NavLink to="/settings">Settings</NavLink>
         {user.role === 'admin' && <NavLink to="/admin">Users</NavLink>}

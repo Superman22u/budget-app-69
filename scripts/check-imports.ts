@@ -112,6 +112,37 @@ async function main(): Promise<void> {
   const beleg = await parseUpload('beleg.pdf', await readFile(path.join(root, 'swica/Belege/682d725c-1e7c-405d-b467-733641ce2317.pdf')), 'healthcare')
   assert(beleg.kind === 'healthcare' && beleg.documents.length === 1, 'scan beleg stored')
 
+  const denner = await parseUpload('denner.jpg', await readFile(path.join(root, 'receipts/shopping/Denner/PXL_20261119_134957797.jpg')), 'receipt')
+  assert(denner.kind === 'receipts', 'denner photo kind')
+  if (denner.kind === 'receipts') {
+    const receipt = denner.receipts[0]
+    assert(receipt.totalAmount === 43.35, `denner total ${receipt.totalAmount}`)
+    assert(receipt.storeChain === 'Denner', 'denner chain')
+    assert(receipt.purchasedAt?.startsWith('2026-11-19'), `denner date ${receipt.purchasedAt}`)
+    assert(receipt.items.some((item) => item.quantity === 4 && item.lineTotal === 19.2), 'denner chips')
+    assert(receipt.items.some((item) => item.weight != null && item.weight > 0.9 && item.weight < 1.1), 'denner broccoli weight')
+    assert(receipt.items.length >= 8, `denner items ${receipt.items.length}`)
+  }
+
+  const landi = await parseUpload('landi.jpg', await readFile(path.join(root, 'receipts/shopping/Landi/PXL_20261119_070228167.jpg')), 'receipt')
+  assert(landi.kind === 'receipts', 'landi photo kind')
+  if (landi.kind === 'receipts') {
+    const receipt = landi.receipts[0]
+    assert(receipt.totalAmount === 37.45, `landi total ${receipt.totalAmount}`)
+    assert(receipt.storeChain === 'Landi', 'landi chain')
+    assert(receipt.items.some((item) => /fensterreiniger/i.test(item.description) && item.lineTotal === 8.7), 'landi cleaner')
+    assert(receipt.items.some((item) => item.quantity === 2 && item.lineTotal === 5.9), 'landi bags')
+  }
+
+  const ochsner = await parseUpload('ochsner.jpg', await readFile(path.join(root, 'receipts/shopping/OchsnerSport/PXL_20261119_070329047.jpg')), 'receipt')
+  assert(ochsner.kind === 'receipts', 'ochsner photo kind')
+  if (ochsner.kind === 'receipts') {
+    const receipt = ochsner.receipts[0]
+    assert(receipt.totalAmount === 463.2, `ochsner total ${receipt.totalAmount}`)
+    assert(receipt.storeChain === 'Ochsner Sport', 'ochsner chain')
+    assert(receipt.purchasedAt?.startsWith('2025-11-07'), `ochsner date ${receipt.purchasedAt}`)
+  }
+
   const migros = await file('receipts/shopping/Migros/20260101_20261231.pdf')
   assert(migros.kind === 'receipts', 'migros kind')
   if (migros.kind === 'receipts') {

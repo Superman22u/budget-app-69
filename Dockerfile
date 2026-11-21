@@ -12,6 +12,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY sql ./sql
+COPY ocr ./ocr
 RUN mkdir -p /app/data
 EXPOSE 8080
 CMD ["node", "dist/server/index.js"]

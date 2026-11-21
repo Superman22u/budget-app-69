@@ -228,3 +228,28 @@ CREATE TABLE IF NOT EXISTS receipt_items (
   sort_order INT NOT NULL DEFAULT 0,
   CONSTRAINT fk_item_receipt FOREIGN KEY (receipt_id) REFERENCES receipts(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS inventory_items (
+  id CHAR(36) PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
+  receipt_item_id CHAR(36) NULL,
+  description VARCHAR(300) NOT NULL,
+  store_name VARCHAR(200) NULL,
+  store_chain VARCHAR(80) NULL,
+  purchased_at DATETIME NULL,
+  quantity DECIMAL(12,3) NULL,
+  weight DECIMAL(12,3) NULL,
+  unit_price DECIMAL(14,2) NULL,
+  price_per_kg DECIMAL(14,2) NULL,
+  line_total DECIMAL(14,2) NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'CHF',
+  expiry_date DATE NULL,
+  location VARCHAR(120) NULL,
+  notes TEXT NULL,
+  consumed_at DATETIME NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_inventory_receipt_item (receipt_item_id),
+  KEY idx_inventory_user (user_id, consumed_at, expiry_date),
+  CONSTRAINT fk_inventory_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_inventory_item FOREIGN KEY (receipt_item_id) REFERENCES receipt_items(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

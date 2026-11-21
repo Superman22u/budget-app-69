@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import type { FastifyInstance } from 'fastify'
 import bcrypt from 'bcryptjs'
-import { currentUser } from '../auth.ts'
+import { currentUser, sessionCookie } from '../auth.ts'
 import { one, exec } from '../db.ts'
 import { HttpError } from '../http.ts'
 import { newToken, seedUserDefaults, sha256 } from '../seed.ts'
@@ -64,7 +64,7 @@ export function registerAuth(app: FastifyInstance): void {
     ])
     await seedUserDefaults(id)
     const token = app.jwt.sign({ sub: id, role: 'user', email }, { expiresIn: '14d' })
-    reply.setCookie('token', token, cookieOptions())
+    reply.setCookie(sessionCookie, token, cookieOptions())
     return { id, firstName, lastName, email, role: 'user' }
   })
 
@@ -76,12 +76,12 @@ export function registerAuth(app: FastifyInstance): void {
     const user = await one<UserRow>('SELECT id, first_name, last_name, email, role, password_hash FROM users WHERE email = ?', [email])
     if (!user || !(await bcrypt.compare(password, user.password_hash))) throw new HttpError(401, 'Email or password is wrong')
     const token = app.jwt.sign({ sub: user.id, role: user.role, email: user.email }, { expiresIn: '14d' })
-    reply.setCookie('token', token, cookieOptions())
+    reply.setCookie(sessionCookie, token, cookieOptions())
     return publicUser(user)
   })
 
   app.post('/api/auth/logout', async (_request, reply) => {
-    reply.clearCookie('token', { path: '/' })
+    reply.clearCookie(sessionCookie, { path: '/' })
     return { ok: true }
   })
 
